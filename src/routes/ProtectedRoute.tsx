@@ -1,0 +1,13 @@
+import { JSX } from "react";
+import { Navigate } from "react-router-dom";
+import { useUserStore } from "@/src/store/userStore";
+
+export default function ProtectedRoute({ children }: { children: JSX.Element }) {
+    const user = useUserStore((state) => state.user);
+
+    if (!user) {
+        return <Navigate to="/" replace />;
+    }
+
+    return children;
+}

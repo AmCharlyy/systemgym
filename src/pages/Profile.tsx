@@ -14,7 +14,7 @@ export default function Profile() {
 
   const handleLogout = () => {
     clearUser();
-    navigate("/");
+    setTimeout(() => navigate("/"), 0);
   };
 
   const itemVariants = {

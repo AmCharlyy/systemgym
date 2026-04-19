@@ -1,5 +1,6 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import AppLayout from "./layouts/AppLayout";
+
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Onboarding from "./pages/Onboarding";
@@ -13,23 +14,123 @@ import History from "./pages/History";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 
+import ProtectedRoute from "./routes/ProtectedRoute";
+import PublicRoute from "./routes/PublicRoute";
+
 const router = createBrowserRouter([
   {
     path: "/",
     element: <AppLayout />,
     children: [
-      { index: true, element: <Login /> },
-      { path: "register", element: <Register /> },  
-      { path: "onboarding", element: <Onboarding /> },
-      { path: "dashboard", element: <Dashboard /> },
-      { path: "generate", element: <GenerateRoutine /> },
-      { path: "routines", element: <RoutinesList /> },
-      { path: "routine/:id", element: <RoutineDetail /> },
-      { path: "exercise/:id", element: <ExerciseDetail /> },
-      { path: "workout", element: <ActiveWorkout /> },
-      { path: "history", element: <History /> },
-      { path: "profile", element: <Profile /> },
-      { path: "settings", element: <Settings /> },
+      // Rutas públicas
+      { 
+        index: true, 
+        element: (
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        ) 
+      },
+
+      { 
+        path: "register", 
+        element: (
+          <PublicRoute>
+            <Register />
+          </PublicRoute>
+        ) 
+      },
+
+      // Rutas protegidas
+      { 
+        path: "onboarding", 
+        element: (
+          <ProtectedRoute>
+            <Onboarding />
+          </ProtectedRoute>
+        ) 
+      },
+
+      { 
+        path: "dashboard", 
+        element: (
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        ) 
+      },
+
+      { 
+        path: "generate", 
+        element: (
+          <ProtectedRoute>
+            <GenerateRoutine />
+          </ProtectedRoute>
+        ) 
+      },
+
+      { 
+        path: "routines", 
+        element: (
+          <ProtectedRoute>
+            <RoutinesList />
+          </ProtectedRoute>
+        ) 
+      },
+
+      { 
+        path: "routine/:id", 
+        element: (
+          <ProtectedRoute>
+            <RoutineDetail />
+          </ProtectedRoute>
+        ) 
+      },
+
+      { 
+        path: "exercise/:id", 
+        element: (
+          <ProtectedRoute>
+            <ExerciseDetail />
+          </ProtectedRoute>
+        ) 
+      },
+
+      { 
+        path: "workout", 
+        element: (
+          <ProtectedRoute>
+            <ActiveWorkout />
+          </ProtectedRoute>
+        ) 
+      },
+
+      { 
+        path: "history", 
+        element: (
+          <ProtectedRoute>
+            <History />
+          </ProtectedRoute>
+        ) 
+      },
+
+      { 
+        path: "profile", 
+        element: (
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        ) 
+      },
+
+      { 
+        path: "settings", 
+        element: (
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        ) 
+      },
     ],
   },
 ]);
