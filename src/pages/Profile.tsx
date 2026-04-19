@@ -1,15 +1,19 @@
 import { Settings as SettingsIcon, User, Layers, Target, Dumbbell, ChevronRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/src/components/ui/button";
+import { useUserStore } from "@/src/store/userStore";
 import { useStore } from "@/src/store";
 import { motion } from "motion/react";
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { level, equipment, goal, logout } = useStore();
+  const user = useUserStore((state) => state.user);
+  const clearUser = useUserStore((state) => state.clearUser);
+  const { level, equipment, goal } = useStore();
+  const username = user?.email?.split("@")[0] || "Usuario";
 
   const handleLogout = () => {
-    logout();
+    clearUser();
     navigate("/");
   };
 
@@ -40,9 +44,12 @@ export default function Profile() {
         >
           <User className="h-10 w-10 text-gray-500" strokeWidth={2.5} />
         </motion.div>
+
         <div>
-          <h2 className="text-2xl font-black">Usuario Test</h2>
-          <p className="text-gray-600 font-bold mb-2">test@test.com</p>
+          <h2 className="text-2xl font-black">{username}</h2>
+          <p className="text-gray-600 font-bold mb-1">{user?.email}</p>
+          <p className="text-gray-400 text-xs font-bold mb-2">UID: {user?.uid}</p>
+
           <div className="inline-flex items-center gap-1.5 bg-red-100 px-3 py-1 border-[1.5px] border-red-300 shadow-[2px_2px_0px_0px_#ff0000]">
             <span className="w-2 h-2 rounded-full bg-[#ff0000] animate-pulse"></span>
             <span className="text-[#ff0000] text-xs font-black uppercase">Pro Activo</span>
@@ -53,8 +60,10 @@ export default function Profile() {
       <div className="space-y-4 pt-4">
         <motion.h3 variants={itemVariants} className="font-black text-lg">Preferencias de Entrenamiento</motion.h3>
         
-        <div className="space-y-0">
-          <motion.div variants={itemVariants} className="bg-black text-white p-4 flex items-center border-[3px] border-black border-b-0 cursor-pointer hover:bg-gray-900 transition-colors group">
+        <div className="space-y-4">
+
+          {/* Nivel */}
+          <motion.div variants={itemVariants} className="bg-black text-white p-4 flex items-center border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer hover:bg-gray-900 transition-colors group">
             <div className="w-10 h-10 bg-white flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
               <Layers className="h-5 w-5 text-[#ff0000]" strokeWidth={2.5} />
             </div>
@@ -65,7 +74,8 @@ export default function Profile() {
             <ChevronRight className="h-6 w-6 text-gray-500 group-hover:translate-x-1 transition-transform" />
           </motion.div>
 
-          <motion.div variants={itemVariants} className="bg-black text-white p-4 flex items-center border-[3px] border-black border-b-0 cursor-pointer hover:bg-gray-900 transition-colors group">
+          {/* Objetivo */}
+          <motion.div variants={itemVariants} className="bg-black text-white p-4 flex items-center border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer hover:bg-gray-900 transition-colors group">
             <div className="w-10 h-10 bg-white flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
               <Target className="h-5 w-5 text-[#ff0000]" strokeWidth={2.5} />
             </div>
@@ -76,7 +86,8 @@ export default function Profile() {
             <ChevronRight className="h-6 w-6 text-gray-500 group-hover:translate-x-1 transition-transform" />
           </motion.div>
 
-          <motion.div variants={itemVariants} className="bg-black text-white p-4 flex items-center border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer relative z-10 hover:bg-gray-900 transition-colors group">
+          {/* Equipo */}
+          <motion.div variants={itemVariants} className="bg-black text-white p-4 flex items-center border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer hover:bg-gray-900 transition-colors group">
             <div className="w-10 h-10 bg-white flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
               <Dumbbell className="h-5 w-5 text-[#ff0000]" strokeWidth={2.5} />
             </div>
@@ -86,6 +97,7 @@ export default function Profile() {
             </div>
             <ChevronRight className="h-6 w-6 text-gray-500 group-hover:translate-x-1 transition-transform" />
           </motion.div>
+
         </div>
       </div>
 
