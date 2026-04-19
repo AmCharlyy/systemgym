@@ -1,19 +1,37 @@
-import React from "react";
+import React, { useState } from "react";
 import { Dumbbell } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { useNavigate } from "react-router-dom";
-import { useStore } from "@/src/store";
+import { useUserStore } from "@/src/store/userStore";
 import { motion } from "motion/react";
+import { loginUser } from "../services/firebase/auth";
 
 export default function Login() {
   const navigate = useNavigate();
-  const login = useStore(state => state.login);
+  const setUser = useUserStore((state) => state.setUser);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    login();
-    navigate("/onboarding");
+    setError("");
+
+    try {
+      const userCredential = await loginUser(email, password);
+      const user = userCredential.user;
+
+      setUser({
+        uid: user.uid,
+        email: user.email || "",
+      });
+
+      navigate("/dashboard");
+    } catch (err: any) {
+      setError("Correo o contraseña incorrectos.");
+    }
   };
 
   return (
@@ -33,7 +51,7 @@ export default function Login() {
           <Dumbbell className="h-10 w-10 text-white" strokeWidth={2.5} />
         </div>
         <div className="text-center">
-          <h1 className="text-3xl font-black uppercase tracking-tight">FITAPP WIREFRAME</h1>
+          <h1 className="text-3xl font-black uppercase tracking-tight">FITAPP</h1>
           <p className="mt-2 text-sm text-gray-500 uppercase tracking-widest font-bold">INICIA SESIÓN PARA CONTINUAR</p>
         </div>
       </motion.div>
@@ -48,8 +66,9 @@ export default function Login() {
           </label>
           <Input 
             type="email" 
-            placeholder="EJEMPLO@CORREO.COM" 
-            defaultValue="ejemplo@correo.com"
+            placeholder="ejemplo@correo.com" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required 
             className="transition-all focus:-translate-y-1 focus:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
           />
@@ -65,11 +84,14 @@ export default function Login() {
           <Input 
             type="password" 
             placeholder="••••••••" 
-            defaultValue="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             required 
             className="transition-all focus:-translate-y-1 focus:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
           />
         </motion.div>
+
+        {error && <p className="text-red-500 text-sm">{error}</p>}
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
@@ -78,6 +100,7 @@ export default function Login() {
           <Button type="submit" className="w-full text-lg shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             INICIAR SESIÓN
           </Button>
+
           <Button 
             type="button" 
             variant="outline" 

@@ -37,7 +37,11 @@ export default function Register() {
 
         navigate("/onboarding");
         } catch (err: any) {
-        setError("No se pudo crear la cuenta.");
+            if (err.code === "auth/email-already-in-use") {
+                setError("Este correo ya está registrado.");
+            } else {
+                setError("No se pudo crear la cuenta.");
+            }
         }
     };
 
