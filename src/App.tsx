@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import AppLayout from "./layouts/AppLayout";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import GenerateRoutine from "./pages/GenerateRoutine";
@@ -18,6 +19,7 @@ const router = createBrowserRouter([
     element: <AppLayout />,
     children: [
       { index: true, element: <Login /> },
+      { path: "register", element: <Register /> },  
       { path: "onboarding", element: <Onboarding /> },
       { path: "dashboard", element: <Dashboard /> },
       { path: "generate", element: <GenerateRoutine /> },

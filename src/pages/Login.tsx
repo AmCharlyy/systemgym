@@ -78,7 +78,12 @@ export default function Login() {
           <Button type="submit" className="w-full text-lg shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             INICIAR SESIÓN
           </Button>
-          <Button type="button" variant="outline" className="w-full transition-transform hover:bg-[#e5e5e5]">
+          <Button 
+            type="button" 
+            variant="outline" 
+            className="w-full transition-transform hover:bg-[#e5e5e5]"
+            onClick={() => navigate("/register")}
+          >
             ¿NO TIENES CUENTA? REGÍSTRATE
           </Button>
         </motion.div>
