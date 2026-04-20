@@ -2,12 +2,15 @@ import { useState, useEffect } from "react";
 import { X, Pause, Play, SkipForward, SkipBack, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/src/components/ui/button";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "@/src/firebase";
 
 export default function ActiveWorkout() {
   const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState(57);
   const [isPaused, setIsPaused] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (isPaused || isComplete) return;
@@ -23,6 +26,27 @@ export default function ActiveWorkout() {
     }, 1000);
     return () => clearInterval(timer);
   }, [isPaused, isComplete]);
+
+  useEffect(() => {
+    const saveWorkout = async () => {
+      if (!isComplete || saved || !auth.currentUser) return;
+
+      try {
+        await addDoc(collection(db, "users", auth.currentUser.uid, "history"), {
+          title: "Rutina completada",
+          duration: 57,
+          calories: 220,
+          completedAt: serverTimestamp(),
+        });
+      } catch (error) {
+        console.error("Error guardando historial:", error);
+      } finally {
+        setSaved(true);
+      }
+    };
+
+    saveWorkout();
+  }, [isComplete, saved]);
 
   const formatTime = (secs: number) => {
     const mins = Math.floor(secs / 60);
@@ -94,7 +118,7 @@ export default function ActiveWorkout() {
               strokeWidth="8" 
               fill="none" 
               strokeDasharray={120 * 2 * Math.PI}
-              strokeDashoffset={(120 * 2 * Math.PI) * (1 - timeLeft/60)}
+              strokeDashoffset={(120 * 2 * Math.PI) * (1 - timeLeft / 60)}
               className="transition-all duration-1000 ease-linear"
             />
           </svg>
@@ -117,7 +141,7 @@ export default function ActiveWorkout() {
           </button>
           <button 
             className="w-16 h-16 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-900 transition-colors"
-            onClick={() => setIsComplete(true)} // Skip to end for demo
+            onClick={() => setIsComplete(true)}
           >
             <SkipForward className="h-8 w-8 ml-[2px]" />
           </button>
