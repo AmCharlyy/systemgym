@@ -16,7 +16,7 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { fetchUserPreferences, setLoggedIn } = useStore();
+  const { fetchUserPreferences, setLoggedIn, reset } = useStore();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -25,13 +25,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setLoggedIn(true);
         await fetchUserPreferences(user.uid);
       } else {
+        reset();
         setLoggedIn(false);
       }
       setLoading(false);
     });
 
     return unsubscribe;
-  }, [fetchUserPreferences, setLoggedIn]);
+  }, [fetchUserPreferences, reset, setLoggedIn]);
 
   return (
     <AuthContext.Provider value={{ currentUser, loading }}>

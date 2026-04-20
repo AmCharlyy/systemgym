@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider, Navigate, Outlet, useLocation } from "react-router-dom";
 import AppLayout from "./layouts/AppLayout";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import GenerateRoutine from "./pages/GenerateRoutine";
@@ -51,6 +52,7 @@ const router = createBrowserRouter([
     element: <AppLayout />,
     children: [
       { index: true, element: <IndexRoute /> },
+      { path: "register", element: <Register /> },
       { 
         element: <ProtectedRoute />, 
         children: [

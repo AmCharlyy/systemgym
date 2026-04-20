@@ -4,22 +4,27 @@ import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
-import { auth, db, googleProvider } from "@/src/firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "@/src/firebase";
 
-export default function Login() {
+export default function Register() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const ensureUserDoc = async (user: any) => {
-    const userRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userRef);
-    if (!userSnap.exists()) {
-      await setDoc(userRef, {
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      await setDoc(doc(db, "users", user.uid), {
         email: user.email || "",
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -27,43 +32,19 @@ export default function Login() {
         equipment: "",
         goal: ""
       });
-    }
-  };
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      await ensureUserDoc(userCredential.user);
       navigate("/dashboard");
     } catch (err: any) {
-      console.error("Login failed", err);
-      if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
-        setError("Correo o contraseña incorrectos.");
+      console.error("Registration failed", err);
+      if (err.code === "auth/email-already-in-use") {
+        setError("El correo ya está registrado.");
       } else if (err.code === "auth/invalid-email") {
         setError("El correo no es válido.");
+      } else if (err.code === "auth/weak-password") {
+        setError("La contraseña debe tener al menos 6 caracteres.");
       } else {
-        setError("No se pudo iniciar sesión. Intenta de nuevo.");
+        setError("No se pudo crear la cuenta. Intenta de nuevo.");
       }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    setError("");
-
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      await ensureUserDoc(result.user);
-      navigate("/dashboard");
-    } catch (err) {
-      console.error("Login failed", err);
-      setError("Hubo un error al iniciar sesión con Google.");
     } finally {
       setLoading(false);
     }
@@ -87,11 +68,11 @@ export default function Login() {
         </div>
         <div className="text-center">
           <h1 className="text-3xl font-black uppercase tracking-tight">FITAPP</h1>
-          <p className="mt-2 text-sm text-gray-500 uppercase tracking-widest font-bold">INICIA SESIÓN PARA CONTINUAR</p>
+          <p className="mt-2 text-sm text-gray-500 uppercase tracking-widest font-bold">CREA TU CUENTA PARA CONTINUAR</p>
         </div>
       </motion.div>
 
-      <form onSubmit={handleEmailLogin} className="w-full space-y-6">
+      <form onSubmit={handleRegister} className="w-full space-y-6">
         <motion.div
           initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}
           className="space-y-2"
@@ -133,34 +114,19 @@ export default function Login() {
           className="pt-4 space-y-4"
         >
           <Button type="submit" disabled={loading} className="w-full text-lg shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            {loading ? "CARGANDO..." : "INICIAR SESIÓN"}
+            {loading ? "CREANDO CUENTA..." : "REGISTRARME"}
           </Button>
 
           <Button
             type="button"
             variant="outline"
             className="w-full transition-transform hover:bg-[#e5e5e5]"
-            onClick={() => navigate("/register")}
+            onClick={() => navigate("/")}
           >
-            ¿NO TIENES CUENTA? REGÍSTRATE
+            Ya tengo cuenta
           </Button>
         </motion.div>
       </form>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-        className="pt-4"
-      >
-        <Button
-          type="button"
-          disabled={loading}
-          onClick={handleGoogleLogin}
-          variant="outline"
-          className="w-full text-lg shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
-        >
-          {loading ? "CARGANDO..." : "INICIAR CON GOOGLE"}
-        </Button>
-      </motion.div>
     </motion.div>
   );
 }
