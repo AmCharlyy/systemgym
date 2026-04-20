@@ -7,6 +7,7 @@ interface UserState {
   equipment: string;
   goal: string;
   isLoggedIn: boolean;
+  preferencesLoaded: boolean;
   setPreferences: (level: string, equipment: string, goal: string) => Promise<void>;
   fetchUserPreferences: (uid: string) => Promise<void>;
   reset: () => void;
@@ -18,7 +19,8 @@ export const useStore = create<UserState>((set, get) => ({
   equipment: '',
   goal: '',
   isLoggedIn: false,
-  reset: () => set({ level: '', equipment: '', goal: '', isLoggedIn: false }),
+  preferencesLoaded: false,
+  reset: () => set({ level: '', equipment: '', goal: '', isLoggedIn: false, preferencesLoaded: false }),
   setLoggedIn: (status) => set({ isLoggedIn: status }),
   fetchUserPreferences: async (uid) => {
     try {
@@ -26,14 +28,22 @@ export const useStore = create<UserState>((set, get) => ({
       const snap = await getDoc(userRef);
       if (snap.exists()) {
         const data = snap.data();
-        set({ level: data.level || '', equipment: data.equipment || '', goal: data.goal || '' });
+        set({ 
+          level: data.level || '', 
+          equipment: data.equipment || '', 
+          goal: data.goal || '',
+          preferencesLoaded: true
+        });
+      } else {
+        set({ preferencesLoaded: true });
       }
     } catch (e) {
       console.error(e);
+      set({ preferencesLoaded: true });
     }
   },
   setPreferences: async (level, equipment, goal) => {
-    set({ level, equipment, goal }); // optimistic update
+    set({ level, equipment, goal, preferencesLoaded: true }); // optimistic update
     
     const user = auth.currentUser;
     if (!user) return;

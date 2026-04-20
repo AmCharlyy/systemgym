@@ -1,15 +1,12 @@
 import React, { useState } from "react";
 import { Dumbbell } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
-import { useNavigate } from "react-router-dom";
-import { useStore } from "@/src/store";
 import { motion } from "motion/react";
 import { signInWithPopup } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db, googleProvider } from "@/src/firebase";
 
 export default function Login() {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   const handleGoogleLogin = async () => {
@@ -23,7 +20,7 @@ export default function Login() {
       const userSnap = await getDoc(userRef);
 
       if (!userSnap.exists()) {
-        // Create user
+        // Create user so rules pass and preferences can be saved later
         await setDoc(userRef, {
           email: user.email,
           createdAt: serverTimestamp(),
@@ -32,19 +29,12 @@ export default function Login() {
           equipment: '',
           goal: ''
         });
-        navigate("/onboarding");
-      } else {
-        const data = userSnap.data();
-        if (!data.level) {
-          navigate("/onboarding");
-        } else {
-          navigate("/dashboard");
-        }
       }
+      
+      // Automatic navigation is handled by App.tsx ProtectedRoute/IndexRoute listening to Auth state
     } catch (error) {
       console.error("Login failed", error);
       alert("Hubo un error al iniciar sesión.");
-    } finally {
       setLoading(false);
     }
   };

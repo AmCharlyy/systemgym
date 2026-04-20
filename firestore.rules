@@ -21,10 +21,11 @@ service cloud.firestore {
     }
 
     function isValidRoutine(data) {
-      return data.keys().hasAll(['title', 'time', 'level', 'createdAt', 'userId'])
+      return data.keys().hasAll(['title', 'time', 'level', 'createdAt', 'userId', 'exercises'])
         && data.title is string && data.title.size() <= 100
         && data.time is string && data.time.size() <= 50
         && data.level is string && data.level.size() <= 50
+        && data.exercises is list && data.exercises.size() <= 20
         && data.userId is string && data.userId == request.auth.uid
         && data.createdAt is timestamp;
     }
@@ -51,12 +52,17 @@ service cloud.firestore {
         
       // 2. Routines Subcollection
       match /routines/{routineId} {
-        allow read: if isSignedIn() && request.auth.uid == userId;
+        allow list, get: if isSignedIn() && request.auth.uid == userId;
         allow create: if isSignedIn() 
           && request.auth.uid == userId
           && isValidId(routineId)
           && isValidRoutine(incoming())
-          && incoming().createdAt == request.time;
+          && (incoming().createdAt == request.time || incoming().createdAt is timestamp);
+        allow update: if isSignedIn() 
+          && request.auth.uid == userId
+          && isValidRoutine(incoming())
+          && incoming().createdAt == existing().createdAt
+          && incoming().userId == request.auth.uid;
         allow delete: if isSignedIn() && request.auth.uid == userId;
       }
     }

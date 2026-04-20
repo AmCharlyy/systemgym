@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider, Navigate, Outlet } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate, Outlet, useLocation } from "react-router-dom";
 import AppLayout from "./layouts/AppLayout";
 import Login from "./pages/Login";
 import Onboarding from "./pages/Onboarding";
@@ -12,29 +12,36 @@ import History from "./pages/History";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { useEffect } from "react";
 import { useStore } from "./store";
 
 const ProtectedRoute = () => {
   const { currentUser } = useAuth();
-  const { fetchUserPreferences, setLoggedIn } = useStore();
-
-  useEffect(() => {
-    if (currentUser) {
-      setLoggedIn(true);
-      fetchUserPreferences(currentUser.uid);
-    } else {
-      setLoggedIn(false);
-    }
-  }, [currentUser, fetchUserPreferences, setLoggedIn]);
+  const level = useStore(state => state.level);
+  const location = useLocation();
 
   if (!currentUser) return <Navigate to="/" replace />;
+
+  // User logged in but hasn't completed onboarding
+  if (!level && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  // User onboarded already and is trying to access onboarding
+  if (level && location.pathname === '/onboarding') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return <Outlet />;
 };
 
-const AuthCheckRoute = () => {
+const IndexRoute = () => {
   const { currentUser } = useAuth();
-  if (currentUser) return <Navigate to="/dashboard" replace />;
+  const level = useStore(state => state.level);
+
+  if (currentUser) {
+    if (!level) return <Navigate to="/onboarding" replace />;
+    return <Navigate to="/dashboard" replace />;
+  }
   return <Login />;
 };
 
@@ -43,7 +50,7 @@ const router = createBrowserRouter([
     path: "/",
     element: <AppLayout />,
     children: [
-      { index: true, element: <AuthCheckRoute /> },
+      { index: true, element: <IndexRoute /> },
       { 
         element: <ProtectedRoute />, 
         children: [

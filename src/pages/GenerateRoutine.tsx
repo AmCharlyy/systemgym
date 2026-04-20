@@ -7,6 +7,7 @@ import { useStore } from "@/src/store";
 import { cn } from "@/src/lib/utils";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db, auth } from "@/src/firebase";
+import { generateRoutine } from "@/src/lib/routineGenerator";
 
 export default function GenerateRoutine() {
   const navigate = useNavigate();
@@ -20,23 +21,28 @@ export default function GenerateRoutine() {
       setIsGenerating(false);
       return;
     }
-    
+
     try {
-      // Simulate an AI generation delay securely generating data
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      const routineData = generateRoutine({ level, equipment, goal });
       const newRoutine = {
-        title: `Entrenamiento de ${goal || "Fuerza"}`,
-        time: "45 min",
-        level: level || "Intermedio",
+        title: String(routineData.title || `Entrenamiento de ${goal || "Fuerza"}`).substring(0, 100),
+        time: String(routineData.time || "45 min").substring(0, 50),
+        level: String(routineData.level || level || "Intermedio").substring(0, 50),
+        exercises: Array.isArray(routineData.exercises) ? routineData.exercises.slice(0, 20) : [],
         userId: user.uid,
         createdAt: serverTimestamp()
       };
-      
+
       const docRef = await addDoc(collection(db, "users", user.uid, "routines"), newRoutine);
-      navigate("/routines"); 
-    } catch (e) {
+      navigate(`/routine/${docRef.id}`);
+    } catch (e: any) {
       console.error("Error saving routine:", e);
+      const message = String(e?.message || e || "Error desconocido");
+      const permissionIssue = /permission|permiso|insufficient|denied/i.test(message);
+      alert(permissionIssue
+        ? "No tienes permisos para guardar la rutina. Asegúrate de estar autenticado y de usar el proyecto Firebase correcto."
+        : `Hubo un error: ${message}`
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -80,12 +86,12 @@ export default function GenerateRoutine() {
         
         <div className="text-center space-y-3 px-4">
           <h3 className="text-2xl font-black tracking-tight">
-            {isGenerating ? "Generando y Guardando..." : "¿Listo para empezar?"}
+            {isGenerating ? "Generando y guardando tu rutina..." : "¿Listo para empezar?"}
           </h3>
           <p className="text-gray-600 font-medium leading-relaxed">
             {isGenerating 
-              ? "Estamos configurando esto en la base de datos de tu perfil..."
-              : "Usa la inteligencia de FitApp para crear y guardar una rutina perfecta."}
+              ? "El sistema de FitApp está creando tu rutina según tu perfil y equipo disponible..."
+              : "Usa el sistema de FitApp para crear y guardar una rutina perfecta."}
           </p>
         </div>
       </div>
