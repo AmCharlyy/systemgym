@@ -4,33 +4,55 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Card } from "@/src/components/ui/card";
 import { cn } from "@/src/lib/utils";
-import { useStore } from "@/src/store";
 import { motion, AnimatePresence } from "motion/react";
+import { useOnboardingStore } from "@/src/store/onboardingStore";
+import { saveUserPreferences } from "@/src/services/firebase/userPreferences";
+import { useUserStore } from "@/src/store/userStore";
+
+type OnboardingOption = {
+  title: string;
+  desc?: string;
+};
 
 export default function Onboarding() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [selections, setSelections] = useState<Record<number, string>>({});
-  const setPreferences = useStore(state => state.setPreferences);
+  const user = useUserStore(state => state.user);
+  const updatePreferences = useUserStore((state) => state.updatePreferences);
+  const { level, goal, equipment, setLevel, setGoal, toggleEquipment } =
+    useOnboardingStore();
 
-  const handleSelect = (optionTitle: string) => {
-    setSelections({ ...selections, [step]: optionTitle });
+  const handleSelect = (title: string) => {
+    if (step === 1) setLevel(title);
+    if (step === 2) toggleEquipment(title);
+    if (step === 3) setGoal(title);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < 3) {
       setStep(step + 1);
-    } else {
-      setPreferences(
-        selections[1] || "Intermedio",
-        selections[2] || "Mancuernas",
-        selections[3] || "Fuerza"
-      );
+      return;
+    }
+
+    if (!user) return;
+
+    const prefs = { level, goal, equipment };
+
+    try {
+      await saveUserPreferences(user.uid, prefs);
+      updatePreferences(prefs);
       navigate("/dashboard");
+    } catch (err) {
+      console.error("Error guardando preferencias:", err);
     }
   };
 
-  const stepsData = [
+
+  const stepsData: {
+    title: string;
+    subtitle: string;
+    options: OnboardingOption[];
+  }[] = [
     {
       title: "¿CUÁL ES TU NIVEL?",
       subtitle: "ESTO NOS AYUDARÁ A AJUSTAR LA INTENSIDAD DE TUS RUTINAS.",
@@ -38,7 +60,7 @@ export default function Onboarding() {
         { title: "Principiante", desc: "Recién empiezo o llevo poco tiempo entrenando." },
         { title: "Intermedio", desc: "Entreno regularmente hace meses." },
         { title: "Avanzado", desc: "Entreno intensamente y busco desafíos." },
-      ]
+      ],
     },
     {
       title: "¿QUÉ EQUIPO TIENES?",
@@ -49,7 +71,7 @@ export default function Onboarding() {
         { title: "LIGAS DE RESISTENCIA" },
         { title: "BARRA Y DISCOS" },
         { title: "MÁQUINAS DE GIMNASIO" },
-      ]
+      ],
     },
     {
       title: "¿CUÁL ES TU OBJETIVO?",
@@ -59,39 +81,42 @@ export default function Onboarding() {
         { title: "Cardio" },
         { title: "Tonificación" },
         { title: "Pérdida de peso" },
-      ]
-    }
+      ],
+    },
   ];
 
   const currentStepData = stepsData[step - 1];
 
+  const selectedValue =
+    step === 1 ? level : step === 2 ? equipment : goal;
+
   return (
     <div className="flex min-h-screen flex-col p-6 overflow-hidden">
       <header className="flex items-center justify-between py-4 relative z-10">
-        <button 
-          onClick={() => step > 1 ? setStep(step - 1) : navigate("/")} 
+        <button
+          onClick={() => (step > 1 ? setStep(step - 1) : navigate("/"))}
           className="p-2 -ml-2 hover:bg-gray-200 rounded-full transition-colors"
         >
           <ChevronLeft className="h-6 w-6" />
         </button>
         <span className="font-bold text-gray-500">Paso {step} de 3</span>
         <div className="w-10"></div>
-        {/* Progress Bar under header */}
+
         <div className="absolute bottom-0 left-0 w-full h-[3px] bg-gray-200 rounded-full overflow-hidden">
-           <motion.div 
-             className="h-full bg-[#ff0000]"
-             initial={{ width: `${((step - 1)/3)*100}%` }}
-             animate={{ width: `${(step/3)*100}%` }}
-           />
+          <motion.div
+            className="h-full bg-[#ff0000]"
+            initial={{ width: `${((step - 1) / 3) * 100}%` }}
+            animate={{ width: `${(step / 3) * 100}%` }}
+          />
         </div>
       </header>
 
       <div className="mt-6 flex-1 flex flex-col relative w-full">
         <AnimatePresence mode="wait">
-          <motion.div 
-            key={step} 
-            initial={{ opacity: 0, x: 50 }} 
-            animate={{ opacity: 1, x: 0 }} 
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3 }}
             className="space-y-6 w-full"
@@ -105,7 +130,13 @@ export default function Onboarding() {
 
             <div className="space-y-4">
               {currentStepData.options.map((opt, i) => {
-                const isSelected = selections[step] === opt.title;
+                const isSelected =
+                  step === 1
+                    ? level === opt.title
+                    : step === 2
+                    ? equipment.includes(opt.title)
+                    : goal === opt.title;
+
                 return (
                   <motion.div
                     key={opt.title}
@@ -113,18 +144,27 @@ export default function Onboarding() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.1 }}
                   >
-                    <Card 
+                    <Card
                       variant={isSelected ? "default" : "black"}
                       className={cn(
                         "cursor-pointer transition-all hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-y-1",
-                        isSelected ? "bg-[#ff0000] text-white border-black scale-[1.02] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" : "border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:border-[#ff0000]"
+                        isSelected
+                          ? "bg-[#ff0000] text-white border-black scale-[1.02] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                          : "border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:border-[#ff0000]"
                       )}
                       onClick={() => handleSelect(opt.title)}
                     >
                       <div className="p-5">
-                        <h3 className={cn("font-bold text-lg transition-transform", !opt.desc && "uppercase text-center", isSelected && "scale-105 transform origin-left")}>
+                        <h3
+                          className={cn(
+                            "font-bold text-lg transition-transform",
+                            !opt.desc && "uppercase text-center",
+                            isSelected && "scale-105 transform origin-left"
+                          )}
+                        >
                           {opt.title}
                         </h3>
+
                         {opt.desc && (
                           <p className="mt-1 text-sm opacity-80 font-medium">
                             {opt.desc}
@@ -133,7 +173,7 @@ export default function Onboarding() {
                       </div>
                     </Card>
                   </motion.div>
-                )
+                );
               })}
             </div>
           </motion.div>
@@ -141,11 +181,11 @@ export default function Onboarding() {
       </div>
 
       <div className="py-6 mt-auto">
-        <Button 
+        <Button
           className={cn(
             "w-full text-lg transition-all",
-            !selections[step] 
-              ? "opacity-50 pointer-events-none bg-gray-400 border-gray-500 shadow-none" 
+            !selectedValue
+              ? "opacity-50 pointer-events-none bg-gray-400 border-gray-500 shadow-none"
               : "shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
           )}
           onClick={handleNext}

@@ -3,18 +3,18 @@ import { ChevronLeft, RefreshCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/src/components/ui/card";
 import { Button } from "@/src/components/ui/button";
-import { useStore } from "@/src/store";
+import { useOnboardingStore } from "@/src/store/onboardingStore";
 import { cn } from "@/src/lib/utils";
 
 export default function GenerateRoutine() {
   const navigate = useNavigate();
-  const { level, equipment, goal } = useStore();
+  const { level, equipment, goal } = useOnboardingStore();
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleGenerate = () => {
     setIsGenerating(true);
     setTimeout(() => {
-      navigate("/routine/1"); // We route to the dummy detail routine in the wireframes
+      navigate("/routine/1");
     }, 1500);
   };
 
@@ -33,16 +33,22 @@ export default function GenerateRoutine() {
         <div className="mt-6 grid grid-cols-2 gap-y-6 gap-x-4">
           <div>
             <p className="text-sm font-bold text-gray-400 mb-2">Nivel</p>
-            <span className="bg-white text-black font-bold px-4 py-1.5 rounded-full text-sm inline-block truncate max-w-[120px]">{level || "Intermedio"}</span>
+            <span className="bg-white text-black font-bold px-4 py-1.5 rounded-full text-sm inline-block truncate max-w-[120px]">
+              {level || "Intermedio"}
+            </span>
           </div>
           <div>
             <p className="text-sm font-bold text-gray-400 mb-2">Objetivo</p>
-            <span className="bg-white text-black font-bold px-4 py-1.5 rounded-full text-sm inline-block truncate max-w-[120px]">{goal || "Fuerza"}</span>
+            <span className="bg-white text-black font-bold px-4 py-1.5 rounded-full text-sm inline-block truncate max-w-[120px]">
+              {goal || "Fuerza"}
+            </span>
           </div>
           <div className="col-span-2">
             <p className="text-sm font-bold text-gray-400 mb-2">Equipo Disponible</p>
             <div className="flex gap-2 flex-wrap">
-              <span className="bg-white text-black font-bold px-4 py-1.5 rounded-full text-sm">{equipment || "Mancuernas"}</span>
+              <span className="bg-white text-black font-bold px-4 py-1.5 rounded-full text-sm">
+                {equipment || "Mancuernas"}
+              </span>
             </div>
           </div>
         </div>

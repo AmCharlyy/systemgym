@@ -4,8 +4,11 @@ interface OnboardingState {
     level: string | null;
     goal: string | null;
     equipment: string[];
-    setLevel: (value: string) => void;
-    setGoal: (value: string) => void;
+
+    setLevel: (value: string | null) => void;
+    setGoal: (value: string | null) => void;
+    setEquipment: (value: string[]) => void;
+
     toggleEquipment: (value: string) => void;
     resetOnboarding: () => void;
 }
@@ -17,6 +20,7 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
 
     setLevel: (value) => set({ level: value }),
     setGoal: (value) => set({ goal: value }),
+    setEquipment: (value) => set({ equipment: value }),
 
     toggleEquipment: (value) => {
         const current = get().equipment;

@@ -1,16 +1,37 @@
 import { ChevronLeft, Smartphone, Mail, Lock, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/src/components/ui/button";
-import { useStore } from "@/src/store";
+import { useUserStore } from "@/src/store/userStore";
+import { useOnboardingStore } from "../store/onboardingStore";
+import { logoutUser } from "@/src/services/firebase/auth";
+import { deleteUser } from "firebase/auth";
+import { deleteUserData } from "@/src/services/firebase/userPreferences";
+import { auth } from "@/src/services/firebase/config";
 
 export default function Settings() {
   const navigate = useNavigate();
-  const logout = useStore(state => state.logout);
+  const clearUser = useUserStore(state => state.clearUser);
+  const resetOnboarding = useOnboardingStore(state => state.resetOnboarding);
 
-  const handleLogout = () => {
-    logout();
+/*   const handleLogout = async () => {
+    await logoutUser();
+    clearUser();
+    resetOnboarding();
     navigate("/");
-  };
+  }; */
+  
+  const handleDeleteAccount = async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  await deleteUserData(user.uid);
+  await deleteUser(user);
+
+  clearUser();
+  resetOnboarding();
+  navigate("/");
+};
+
 
   return (
     <div className="flex min-h-[100dvh] flex-col p-6 space-y-8 bg-[#f5f5f5]">
@@ -33,7 +54,6 @@ export default function Settings() {
                 <p className="text-xs font-bold text-gray-400 mt-1">Recordatorios de entrenamiento</p>
               </div>
             </div>
-            {/* Custom Toggle */}
             <div className="w-12 h-6 bg-[#ff0000] rounded-full p-1 flex justify-end">
               <div className="w-4 h-4 bg-black rounded-full"></div>
             </div>
@@ -66,14 +86,14 @@ export default function Settings() {
         <Button 
           variant="outline" 
           className="w-full text-lg"
-          onClick={handleLogout}
+          onClick={handleDeleteAccount}
         >
-          <LogOut className="h-5 w-5 mr-3" /> CERRAR SESIÓN
+          <LogOut className="h-5 w-5 mr-3" /> Eliminar Cuenta
         </Button>
 
-        <button className="w-full font-bold text-[#ff0000] pt-4 hover:underline">
+{/*         <button className="w-full font-bold text-[#ff0000] pt-4 hover:underline">
           Eliminar cuenta
-        </button>
+        </button> */}
       </div>
     </div>
   );

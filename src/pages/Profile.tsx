@@ -2,19 +2,27 @@ import { Settings as SettingsIcon, User, Layers, Target, Dumbbell, ChevronRight 
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/src/components/ui/button";
 import { useUserStore } from "@/src/store/userStore";
-import { useStore } from "@/src/store";
+import { useOnboardingStore } from "@/src/store/onboardingStore";
 import { motion } from "motion/react";
+import { logoutUser } from "../services/firebase/auth";
 
 export default function Profile() {
   const navigate = useNavigate();
+  // Datos del usuario autenticado
   const user = useUserStore((state) => state.user);
   const clearUser = useUserStore((state) => state.clearUser);
-  const { level, equipment, goal } = useStore();
+  
+  // Preferencias del onboarding
+  const { level, equipment, goal } = useOnboardingStore();
+  const resetOnboarding = useOnboardingStore((state) => state.resetOnboarding);
+  
   const username = user?.email?.split("@")[0] || "Usuario";
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logoutUser();
     clearUser();
-    setTimeout(() => navigate("/"), 0);
+    resetOnboarding();
+    navigate("/");
   };
 
   const itemVariants = {
@@ -24,14 +32,21 @@ export default function Profile() {
 
   return (
     <motion.div 
-      initial="hidden" animate="show"
+      initial="hidden" 
+      animate="show"
       variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1 } } }}
       className="flex flex-col p-6 space-y-8"
     >
       <header className="flex justify-between items-start">
-        <motion.h1 variants={itemVariants} className="text-3xl font-black uppercase tracking-tight">MI PERFIL</motion.h1>
+        <motion.h1 variants={itemVariants} className="text-3xl font-black uppercase tracking-tight">
+          MI PERFIL
+        </motion.h1>
+
         <motion.div variants={{ hidden: { opacity: 0, scale: 0.5 }, show: { opacity: 1, scale: 1 } }}>
-          <Link to="/settings" className="block p-2 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all">
+          <Link 
+            to="/settings" 
+            className="block p-2 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all"
+          >
             <SettingsIcon className="h-6 w-6 stroke-[2.5px]" />
           </Link>
         </motion.div>
@@ -58,11 +73,12 @@ export default function Profile() {
       </motion.div>
 
       <div className="space-y-4 pt-4">
-        <motion.h3 variants={itemVariants} className="font-black text-lg">Preferencias de Entrenamiento</motion.h3>
-        
+        <motion.h3 variants={itemVariants} className="font-black text-lg">
+          Preferencias de Entrenamiento
+        </motion.h3>
+
         <div className="space-y-4">
 
-          {/* Nivel */}
           <motion.div variants={itemVariants} className="bg-black text-white p-4 flex items-center border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer hover:bg-gray-900 transition-colors group">
             <div className="w-10 h-10 bg-white flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
               <Layers className="h-5 w-5 text-[#ff0000]" strokeWidth={2.5} />
@@ -74,7 +90,6 @@ export default function Profile() {
             <ChevronRight className="h-6 w-6 text-gray-500 group-hover:translate-x-1 transition-transform" />
           </motion.div>
 
-          {/* Objetivo */}
           <motion.div variants={itemVariants} className="bg-black text-white p-4 flex items-center border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer hover:bg-gray-900 transition-colors group">
             <div className="w-10 h-10 bg-white flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
               <Target className="h-5 w-5 text-[#ff0000]" strokeWidth={2.5} />
@@ -86,7 +101,6 @@ export default function Profile() {
             <ChevronRight className="h-6 w-6 text-gray-500 group-hover:translate-x-1 transition-transform" />
           </motion.div>
 
-          {/* Equipo */}
           <motion.div variants={itemVariants} className="bg-black text-white p-4 flex items-center border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer hover:bg-gray-900 transition-colors group">
             <div className="w-10 h-10 bg-white flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
               <Dumbbell className="h-5 w-5 text-[#ff0000]" strokeWidth={2.5} />

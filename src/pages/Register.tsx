@@ -5,11 +5,14 @@ import { Input } from "../components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { registerUser } from "../services/firebase/auth";
+import { saveUserPreferences } from "../services/firebase/userPreferences";
+import { useOnboardingStore } from "../store/onboardingStore";
 import { useUserStore } from "../store/userStore";
 
 export default function Register() {
     const navigate = useNavigate();
     const setUser = useUserStore((state) => state.setUser);
+    const resetOnboarding = useOnboardingStore((state) => state.resetOnboarding);
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -20,28 +23,28 @@ export default function Register() {
         e.preventDefault();
         setError("");
 
-        // Validación de contraseñas
         if (password !== confirmPassword) {
-        setError("Las contraseñas no coinciden.");
-        return;
+            setError("Las contraseñas no coinciden.");
+            return;
         }
 
         try {
-        const userCredential = await registerUser(email, password);
-        const user = userCredential.user;
+            const userCredential = await registerUser(email, password);
+            const user = userCredential.user;
 
-        setUser({
-            uid: user.uid,
-            email: user.email || "",
-        });
+            setUser({ uid: user.uid, email: user.email || "" });
 
-        navigate("/onboarding");
-        } catch (err: any) {
-            if (err.code === "auth/email-already-in-use") {
-                setError("Este correo ya está registrado.");
-            } else {
-                setError("No se pudo crear la cuenta.");
-            }
+            resetOnboarding();
+
+            await saveUserPreferences(user.uid, {
+            level: null,
+            goal: null,
+            equipment: [],
+            });
+
+            navigate("/onboarding");
+        } catch {
+            setError("No se pudo crear la cuenta.");
         }
     };
 

@@ -6,14 +6,20 @@ import { useNavigate } from "react-router-dom";
 import { useUserStore } from "@/src/store/userStore";
 import { motion } from "motion/react";
 import { loginUser } from "../services/firebase/auth";
+import { getUserPreferences } from "../services/firebase/userPreferences";
+import { useOnboardingStore } from "../store/onboardingStore";
 
 export default function Login() {
   const navigate = useNavigate();
   const setUser = useUserStore((state) => state.setUser);
-
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const updatePreferences = useUserStore((state) => state.updatePreferences);
+  const setLevel = useOnboardingStore(state => state.setLevel);
+  const setGoal = useOnboardingStore(state => state.setGoal);
+  const setEquipment = useOnboardingStore(state => state.setEquipment);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,13 +29,19 @@ export default function Login() {
       const userCredential = await loginUser(email, password);
       const user = userCredential.user;
 
-      setUser({
-        uid: user.uid,
-        email: user.email || "",
-      });
+      setUser({ uid: user.uid, email: user.email || "" });
+
+      const prefs = await getUserPreferences(user.uid);
+
+      if (prefs) {
+        updatePreferences(prefs);
+        setLevel(prefs.level);
+        setGoal(prefs.goal);
+        setEquipment(prefs.equipment || []);
+      }
 
       navigate("/dashboard");
-    } catch (err: any) {
+    } catch {
       setError("Correo o contraseña incorrectos.");
     }
   };
