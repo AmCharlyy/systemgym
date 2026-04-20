@@ -3,13 +3,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/src/components/ui/button";
 import { useStore } from "@/src/store";
 import { motion } from "motion/react";
+import { auth } from "@/src/firebase";
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { level, equipment, goal, logout } = useStore();
+  const { level, equipment, goal, reset } = useStore();
+  const user = auth.currentUser;
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await auth.signOut();
+    reset();
     navigate("/");
   };
 
@@ -36,13 +39,17 @@ export default function Profile() {
       <motion.div variants={itemVariants} className="flex items-center gap-6">
         <motion.div 
           whileHover={{ scale: 1.05, rotate: -5 }}
-          className="w-24 h-24 rounded-full border-[4px] border-black flex items-center justify-center bg-gray-100 flex-shrink-0 relative shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform duration-300"
+          className="w-24 h-24 rounded-full border-[4px] border-black flex items-center justify-center bg-gray-100 flex-shrink-0 relative overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform duration-300"
         >
-          <User className="h-10 w-10 text-gray-500" strokeWidth={2.5} />
+          {user?.photoURL ? (
+            <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+          ) : (
+            <User className="h-10 w-10 text-gray-500" strokeWidth={2.5} />
+          )}
         </motion.div>
-        <div>
-          <h2 className="text-2xl font-black">Usuario Test</h2>
-          <p className="text-gray-600 font-bold mb-2">test@test.com</p>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-xl font-black truncate">{user?.displayName || "Usuario"}</h2>
+          <p className="text-gray-600 font-bold mb-2 truncate">{user?.email}</p>
           <div className="inline-flex items-center gap-1.5 bg-red-100 px-3 py-1 border-[1.5px] border-red-300 shadow-[2px_2px_0px_0px_#ff0000]">
             <span className="w-2 h-2 rounded-full bg-[#ff0000] animate-pulse"></span>
             <span className="text-[#ff0000] text-xs font-black uppercase">Pro Activo</span>
@@ -60,7 +67,7 @@ export default function Profile() {
             </div>
             <div className="flex-1">
               <h4 className="font-bold text-lg group-hover:text-[#ff0000] transition-colors">Nivel</h4>
-              <p className="text-gray-400 text-sm font-bold">{level || "Intermedio"}</p>
+              <p className="text-gray-400 text-sm font-bold">{level || "Sin definir"}</p>
             </div>
             <ChevronRight className="h-6 w-6 text-gray-500 group-hover:translate-x-1 transition-transform" />
           </motion.div>
@@ -71,7 +78,7 @@ export default function Profile() {
             </div>
             <div className="flex-1">
               <h4 className="font-bold text-lg group-hover:text-[#ff0000] transition-colors">Objetivo</h4>
-              <p className="text-gray-400 text-sm font-bold truncate max-w-[200px]">{goal || "Fuerza y Tonificación"}</p>
+              <p className="text-gray-400 text-sm font-bold truncate max-w-[200px]">{goal || "Sin definir"}</p>
             </div>
             <ChevronRight className="h-6 w-6 text-gray-500 group-hover:translate-x-1 transition-transform" />
           </motion.div>
@@ -82,7 +89,7 @@ export default function Profile() {
             </div>
             <div className="flex-1 min-w-0">
               <h4 className="font-bold text-lg group-hover:text-[#ff0000] transition-colors">Equipo</h4>
-              <p className="text-gray-400 text-sm font-bold truncate">{equipment || "Mancuernas"}</p>
+              <p className="text-gray-400 text-sm font-bold truncate">{equipment || "Sin definir"}</p>
             </div>
             <ChevronRight className="h-6 w-6 text-gray-500 group-hover:translate-x-1 transition-transform" />
           </motion.div>

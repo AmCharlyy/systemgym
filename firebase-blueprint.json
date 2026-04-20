@@ -1,0 +1,24 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with preferences",
+      "type": "object",
+      "properties": {
+        "level": { "type": "string" },
+        "equipment": { "type": "string" },
+        "goal": { "type": "string" },
+        "email": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["email", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles stored by uid"
+    }
+  }
+}

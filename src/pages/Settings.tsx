@@ -2,13 +2,15 @@ import { ChevronLeft, Smartphone, Mail, Lock, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/src/components/ui/button";
 import { useStore } from "@/src/store";
+import { auth } from "@/src/firebase";
 
 export default function Settings() {
   const navigate = useNavigate();
-  const logout = useStore(state => state.logout);
+  const reset = useStore(state => state.reset);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await auth.signOut();
+    reset();
     navigate("/");
   };
 
@@ -65,7 +67,7 @@ export default function Settings() {
         <div className="h-[2px] bg-black/20 w-full"></div>
         <Button 
           variant="outline" 
-          className="w-full text-lg"
+          className="w-full text-lg shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
           onClick={handleLogout}
         >
           <LogOut className="h-5 w-5 mr-3" /> CERRAR SESIÓN
