@@ -15,7 +15,10 @@ export default function RoutineDetail() {
   useEffect(() => {
     const fetchRoutine = async () => {
       const user = auth.currentUser;
-      if (!user || !id) return;
+      if (!user || !id) {
+        setLoading(false);
+        return;
+      }
       try {
         const docRef = doc(db, "users", user.uid, "routines", id);
         const docSnap = await getDoc(docRef);
@@ -112,7 +115,7 @@ export default function RoutineDetail() {
       <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }} className="mt-8 px-6 pb-24">
         <Button 
           className="w-full text-lg h-16 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none translate-y-0 active:translate-y-[6px] active:translate-x-[6px] group"
-          onClick={() => navigate("/workout")}
+          onClick={() => navigate("/workout", { state: { routine } })}
         >
           <Play className="h-6 w-6 mr-2 fill-current group-hover:scale-125 transition-transform" /> INICIAR RUTINA
         </Button>

@@ -65,6 +65,25 @@ service cloud.firestore {
           && incoming().userId == request.auth.uid;
         allow delete: if isSignedIn() && request.auth.uid == userId;
       }
+
+      // 3. History Subcollection
+      function isValidHistoryEntry(data) {
+        return data.keys().hasAll(['title', 'duration', 'calories', 'completedAt'])
+          && data.title is string && data.title.size() <= 100
+          && data.duration is number && data.duration >= 0
+          && data.calories is number && data.calories >= 0
+          && data.completedAt is timestamp;
+      }
+
+      match /history/{historyId} {
+        allow list, get: if isSignedIn() && request.auth.uid == userId;
+        allow create: if isSignedIn()
+          && request.auth.uid == userId
+          && isValidId(historyId)
+          && isValidHistoryEntry(incoming())
+          && incoming().completedAt is timestamp;
+        allow delete: if isSignedIn() && request.auth.uid == userId;
+      }
     }
   }
 }
